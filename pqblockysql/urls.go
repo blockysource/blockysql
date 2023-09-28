@@ -45,10 +45,10 @@ var _ blockysql.DBURLOpener = (*URLOpener)(nil)
 // This driver supports runtime configurable parameters as defined in
 // https://www.postgresql.org/docs/current/runtime-config.html.
 // Most common runtime configurations.:
-//  - search_path (string) - Sets the schema search order for names that are not schema-qualified.
-//  - timezone (string)    - Sets the time zone for displaying and interpreting time stamps.
-//                           Valid values are the time zones supported by the ICU library.
-//                           (i.e. "UTC", "America/New_York").
+//   - search_path (string) - Sets the schema search order for names that are not schema-qualified.
+//   - timezone (string)    - Sets the time zone for displaying and interpreting time stamps.
+//     Valid values are the time zones supported by the ICU library.
+//     (i.e. "UTC", "America/New_York").
 type URLOpener struct {
 	// TraceOpts contains options for OpenCensus.
 	TraceOpts []ocsql.TraceOption
@@ -96,8 +96,14 @@ func OpenDB(ctx context.Context, c *pq.Connector, opts Options) (*blockysql.DB, 
 		return nil, fmt.Errorf("pqblockysql: open database failed: %v", err)
 	}
 
-	isCockroach := strings.Contains(version, "CockroachDB")
-	d := &DB{db: db, isCockroach: isCockroach}
+	d := &DB{db: db}
+	if isCockroach := strings.Contains(version, "CockroachDB"); isCockroach {
+		d.dialect = driver.DialectCockroach
+	} else if isYugaByte := strings.Contains(version, "-YB-"); isYugaByte {
+		d.dialect = driver.DialectYugabyte
+	} else {
+		d.dialect = driver.DialectPostgres
+	}
 
 	return blockysql.NewDB(d)
 }
@@ -106,8 +112,8 @@ var _ driver.DB = (*DB)(nil)
 
 // DB is the driver for the PostgreSQL database.
 type DB struct {
-	db          *sql.DB
-	isCockroach bool
+	db      *sql.DB
+	dialect string
 }
 
 // DriverName implements driver.DB
@@ -115,12 +121,9 @@ func (d *DB) DriverName() string {
 	return "pq"
 }
 
-// FamilyName implements driver.DB
-func (d *DB) FamilyName() string {
-	if d.isCockroach {
-		return driver.FamilyCockroach
-	}
-	return driver.FamilyPostgres
+// Dialect implements driver.DB
+func (d *DB) Dialect() string {
+	return d.dialect
 }
 
 // ErrorCode implements driver.DB.

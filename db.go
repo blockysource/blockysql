@@ -42,10 +42,11 @@ func (d *DB) DriverName() string {
 	return d.driver.DriverName()
 }
 
-// DatabaseFamily returns the family name of the driver.
-// I.e. "postgres" for the postgres driver.
-func (d *DB) DatabaseFamily() string {
-	return d.driver.FamilyName()
+// Dialect returns the dialect of the database connection.
+// For the same driver (i.e.: postgres) a dialect may vary depending
+// on the database server (i.e.: postgres, cockroachdb, yugabyte).
+func (d *DB) Dialect() string {
+	return d.driver.Dialect()
 }
 
 // ErrorCode returns the error code of the given error

@@ -47,9 +47,8 @@ var _ blockysql.DBURLOpener = (*URLOpener)(nil)
 // This driver supports runtime configurable parameters as defined in
 // https://www.postgresql.org/docs/current/runtime-config.html.
 // I.e.:
-//  - search_path (string) - Sets the schema search order for names that are not schema-qualified.
-//  - timezone (string) - Sets the time zone for displaying and interpreting time stamps.
-//
+//   - search_path (string) - Sets the schema search order for names that are not schema-qualified.
+//   - timezone (string) - Sets the time zone for displaying and interpreting time stamps.
 type URLOpener struct {
 	// TraceOpts contains options for OpenCensus.
 	TraceOpts []ocsql.TraceOption
@@ -115,16 +114,22 @@ func OpenDB(ctx context.Context, c pgx.ConnConfig, opts Options) (*blockysql.DB,
 		return nil, fmt.Errorf("pgxblockysql: open database failed: %v", err)
 	}
 
-	isCockroach := strings.Contains(version, "CockroachDB")
-	d := &DB{db: db, isCockroach: isCockroach}
+	d := &DB{db: db}
+	if isCockroach := strings.Contains(version, "CockroachDB"); isCockroach {
+		d.dialect = driver.DialectCockroach
+	} else if isYugaByte := strings.Contains(version, "-YB-"); isYugaByte {
+		d.dialect = driver.DialectYugabyte
+	} else {
+		d.dialect = driver.DialectPostgres
+	}
 
 	return blockysql.NewDB(d)
 }
 
 // DB is the driver for the PostgreSQL database.
 type DB struct {
-	db          *sql.DB
-	isCockroach bool
+	db      *sql.DB
+	dialect string
 }
 
 // DriverName implements driver.DB
@@ -132,12 +137,9 @@ func (d *DB) DriverName() string {
 	return "pgx"
 }
 
-// FamilyName implements driver.DB
-func (d *DB) FamilyName() string {
-	if d.isCockroach {
-		return "cockroach"
-	}
-	return "postgres"
+// Dialect implements driver.DB
+func (d *DB) Dialect() string {
+	return d.dialect
 }
 
 // ErrorCode implements driver.DB.

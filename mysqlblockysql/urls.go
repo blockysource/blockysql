@@ -89,9 +89,9 @@ func (d *DB) DriverName() string {
 	return "mysql"
 }
 
-// FamilyName implements driver.DB
-func (d *DB) FamilyName() string {
-	return driver.FamilyMySQL
+// Dialect implements driver.DB
+func (d *DB) Dialect() string {
+	return driver.DialectMySQL
 }
 
 // ErrorCode implements driver.DB.

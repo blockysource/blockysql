@@ -8,9 +8,11 @@ import (
 
 // DB is a driver specific wrapper over the database/sql.DB.
 type DB interface {
-	// FamilyName returns the family name of the driver.
-	// I.e. "postgres" for the postgres driver.
-	FamilyName() string
+	// Dialect returns the dialect of the driver.
+	// I.e. if the driver implements a protocol that matches multiple
+	// database dialects (such as postgres and cockroachdb), it should
+	// return the dialect name.
+	Dialect() string
 
 	// DriverName returns the name of the driver.
 	DriverName() string
