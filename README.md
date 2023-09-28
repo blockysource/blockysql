@@ -1,4 +1,4 @@
-# The Go database/sql wrapper (Blocky SQL)  
+# The Go database/sql wrapper (Blocky SQL)
 
 _Write once, use with any SQL driver, without driver specific types_
 
@@ -8,7 +8,6 @@ _Write once, use with any SQL driver, without driver specific types_
 [![codecov](https://codecov.io/gh/blockysource/blockysql/branch/master/graph/badge.svg)](https://codecov.io/gh/blockysource/blockysql)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-
 The Golang SQL wrapper with driver-specific parameters.
 
 This implementation allows to use the same code for different SQL drivers.
@@ -16,15 +15,13 @@ It also provides a way to get driver-specific information, such as error codes a
 
 The drivers could be opened using the OpenDB function, which returns a *blockysql.DB.
 
-The *blockysql.DB is simply a wrapper around the *sql.DB, 
+The *blockysql.DB is simply a wrapper around the *sql.DB,
 which provides the same interface. It also provides a way to get driver-specific information.
 
 What's more it allows to handle query errors without casting
 the error to the driver-specific error type.
 
 The *blockysql.DB also provides a way to run a function in a transaction,
-
-
 
 ## Usage
 
@@ -59,7 +56,6 @@ func main() {
 }
 ```
 
-
 ### Getting driver information.
 
 ```go main.go
@@ -85,11 +81,11 @@ func main() {
     fmt.Println(db.DriverName()) 
 
 	
-    // Get the database family name from the driver.
+    // Get the dialect name from the driver.
 	// It could be used to switch implementations based on the database family.
 	// I.e. postgres specific queries.
     // Prints: 'postgres' or 'cockroach' (if database is cockroachdb).
-    fmt.Println(db.DatabaseFamily())
+    fmt.Println(db.Dialect())
     
     // close db
     db.Close()    
@@ -164,7 +160,6 @@ func main() {
     db.Close() 	
 }
 ```
-
 
 ### Auto Commit/Rollback of transactions.
 
